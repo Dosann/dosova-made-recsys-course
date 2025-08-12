@@ -67,6 +67,7 @@ class RemoteRecommender(Recommender):
         headers = {
             "Content-Type": "application/json",
         }
+
         response = self.http.request(
             "POST", url, headers=headers, body=json.dumps(data)
         )

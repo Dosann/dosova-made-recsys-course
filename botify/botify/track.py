@@ -1,3 +1,4 @@
+import itertools
 import json
 import pickle
 from dataclasses import dataclass, field
@@ -23,7 +24,7 @@ class Catalog:
         self.tracks = []
         self.top_tracks = []
 
-    def load(self, catalog_path):
+    def load(self, catalog_path, top_tracks_path):
         self.app.logger.info(f"Loading tracks from {catalog_path}")
         with open(catalog_path) as catalog_file:
             for j, line in enumerate(catalog_file):
@@ -38,6 +39,11 @@ class Catalog:
                 )
         self.app.logger.info(f"Loaded {j + 1} tracks")
 
+        self.app.logger.info(f"Loading top tracks from {top_tracks_path}")
+        with open(top_tracks_path) as top_tracks_path_file:
+            self.top_tracks = json.load(top_tracks_path_file)
+        self.app.logger.info(f"Loaded top tracks {self.top_tracks[:3]} ...")
+
         return self
 
     def upload_tracks(self, redis_tracks):
@@ -49,9 +55,13 @@ class Catalog:
 
     def upload_artists(self, redis):
         self.app.logger.info(f"Uploading artists to redis")
-        # TODO Seminar 1 step 2: implement method to upload artists tracks to redis
-        uploaded = 0
-        self.app.logger.info(f"Uploaded {uploaded} artists")
+        sorted_track = sorted(self.tracks, key=lambda track: track.artist)
+        for j, (artist, artist_catalog) in enumerate(
+            itertools.groupby(sorted_track, key=lambda track: track.artist)
+        ):
+            artist_tracks = [t.track for t in artist_catalog]
+            redis.set(artist, self.to_bytes(artist_tracks))
+        self.app.logger.info(f"Uploaded {j + 1} artists")
 
     def to_bytes(self, instance):
         return pickle.dumps(instance)
