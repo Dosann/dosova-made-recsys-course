@@ -3,6 +3,7 @@ import logging
 import time
 from dataclasses import asdict
 from datetime import datetime
+import numpy as np
 
 from flask import Flask
 from flask_redis import Redis
@@ -65,7 +66,7 @@ class NextTrack(Resource):
         start = time.time()
 
         args = parser.parse_args()
-        treatment = Experiments.USER_BASED.assign(user)
+        treatment = Experiments.PERSONALIZED.assign(user)
         if treatment == Treatment.T1:
             recommender = Indexed(tracks_redis, recommendations_redis, catalog)
         else:
