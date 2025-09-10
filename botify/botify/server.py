@@ -14,6 +14,7 @@ from botify.recommenders.sticky_artist import StickyArtist
 
 from botify.recommenders.toppop import TopPop
 from botify.recommenders.indexed import Indexed
+from botify.recommenders.contextual import Contextual
 from botify.data import DataLogger, Datum
 from botify.experiment import Experiments, Treatment
 from botify.recommenders.random import Random
@@ -66,9 +67,9 @@ class NextTrack(Resource):
         start = time.time()
 
         args = parser.parse_args()
-        treatment = Experiments.PERSONALIZED.assign(user)
+        treatment = Experiments.CONTEXTUAL.assign(user)
         if treatment == Treatment.T1:
-            recommender = Indexed(tracks_redis, recommendations_redis, catalog)
+            recommender = Contextual(tracks_redis.connection, catalog)
         else:
             recommender = Random(tracks_redis.connection)
 
